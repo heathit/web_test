@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8"></meta>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+<!--        <link rel="stylesheet" type="text/css" href="../www/style.css"></link>-->
+        <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <title>Test Page</title>
+    </head>
+    <script>
+
+        function onBackPressed() {
+            console.log('>>>>> onBack');
+            return false;
+        }
+
+
+        function receivePush() {
+            var ext = {
+                "send-type" : $('#alarmTest input[name="send-type"]').val(),
+                "detail-yn" : $('#alarmTest input[name="detail-yn"]').val(),
+                "target-link" : $('#alarmTest input[name="target-link"]').val(),
+                "link-type" : $('#alarmTest input[name="link-type"]:checked').val(),
+                "img-url" : $('#alarmTest input[name="img-url"]').val(),
+            };
+            var extStr = JSON.stringify(ext);
+            var alert = {
+                "title" : "알림함 테스트",
+                "body" : extStr
+            };
+            var pushData = {
+                "mps": {
+                    "appid": "com.miraeasset.mobilewindow",
+                    "ext": extStr,
+                    "seqno": "64",
+                    "sender": "PIB_4877_BP077d8094a2b2a4c27954f4b5d7c462fea^P0005274~1",
+                    "senddate": "20240819165737",
+                    "db_in": "Y",
+                    "pushkey": "8912027c8bfc2fb554ee90c474a22fcdf673a131",
+                    "sms": "Y"
+                },
+                "aps": {
+                    "badge": "0",
+                    "alert": JSON.stringify(alert),
+                    "sub_title": ""
+                }
+            };
+            var message = {
+                "action" : "receivePush",
+                "pushData" : pushData,
+            };
+            postMessage(message);
+        }
+
+
+        function reqAuthNum() {
+            var message = {
+                "action" : "reqAuthNum",
+                "phoneNum" : $('#sms input[name="reqAuthNum"]').val()
+            };
+            postMessage(message);
+        }
+
+
+        function fn_getAuthNumber_callback(authNum) {
+            console.log("authNum: " + authNum);
+            $("#reqAuthNumResult").text(authNum);
+
+        }
+
+        function openSettings() {
+            var message = {
+                "action" : "openSettings",
+            };
+            postMessage(message);
+        }
+
+        function clearHistory() {
+            var message = {
+                "action" : "clearHistory",
+            };
+            postMessage(message);
+        }
+
+
+        function getDHCWebViews() {
+            var message = {
+                "action" : "getDHCWebViews",
+                "callback" : "getDHCWebViewsCallback",
+            };
+            postMessage(message);
+        }
+
+        function getDHCWebViewsCallback(data) {
+            console.log('getDHCWebViewsCallback -> ' + data);
+            try {
+                var webViews = JSON.parse(data).webViews;
+                webViews.forEach(function(data) {
+                    console.log("- " + JSON.stringify(data));
+                });
+            } catch (e) {
+                console.log(e.stack);
+            }
+        }
+
+        function setUserInfo() {
+            var message = {
+                "action" : "setUserInfo",
+                "id" : $('#setUserInfo input[name="id"]').val(),
+                "pw" : $('#setUserInfo input[name="pw"]').val(),
+            };
+            postMessage(message);
+        }
+
+        function showTimePicker() {
+            var time = $("#selectTimeResult").text();
+            var message = {
+                "action" : "showTimePicker",
+                "time" : time,
+                "callback" : "showTimePickerCallback"
+            };
+            postMessage(message);
+        }
+
+        function showTimePickerCallback(data) {
+            console.log('showTimePickerCallback -> ' + data);
+            var time = JSON.parse(data).time;
+            console.log(' - time: ' + time);
+            $("#selectTimeResult").text(time)
+        }
+
+        function shareLink() {
+            var message = {
+                "action" : "shareLink",
+                "url" : $('#share input[name="link"]').val(),
+            };
+            postMessage(message);
+        }
+
+
+        function getUserInfo() {
+            var message = {
+                "action" : "getUserInfo",
+                "callback" : "getUserInfoCallback",
+            };
+            postMessage(message);
+        }
+
+        function getUserInfoCallback(userInfo) {
+            $("#getUserInfoResult").text(userInfo)
+        }
+
+        function getDeviceInfo() {
+            var message = {
+                "action" : "getDeviceInfo",
+                "callback" : "getDeviceInfoCallback",
+            };
+            postMessage(message);
+        }
+
+        function getDeviceInfoCallback(data) {
+            console.log('getDeviceInfoCallback -> ' + data);
+            var deviceInfo = JSON.parse(data).deviceInfo;
+            console.log('deviceInfo');
+            console.log(' - appName: ' + deviceInfo.appName);
+            console.log(' - osType: ' + deviceInfo.osType);
+            console.log(' - osVersion: ' + deviceInfo.osVersion);
+            console.log(' - appVersion: ' + deviceInfo.appVersion);
+            console.log(' - deviceModel: ' + deviceInfo.deviceModel);
+            $("#getDeviceInfoResult").text(data)
+        }
+
+         function setData() {
+            var message = {
+                "action" : "setData",
+                "key" : $('input[name="key"]').val(),
+                "value" : $('input[name="value"]').val(),
+            };
+            postMessage(message);
+        }
+
+        function getData() {
+            var message = {
+                "action" : "getData",
+                "key" : $('#getData input[name="key"]').val(),
+                "callback" : "getDataCallback"
+            };
+            postMessage(message);
+        }
+
+        function getDataCallback(data) {
+            console.log('getDataCallback -> ' + data);
+            var joinDate = JSON.parse(data).joinDate;
+            console.log(' - joinDate: ' + joinDate)
+            $('#getDataResult').text(data);
+        }
+
+        function openWebView() {
+            var message = {
+                "action" : "openWebView",
+                "url" : $('#openWebView input[name="url"]').val(),
+            };
+            postMessage(message);
+
+            // test
+            setLastUrl();
+        }
+        function setLastUrl() {
+           var message = {
+               "action" : "setData",
+               "key" : "lastUrl",
+               "value" : $('#openWebView input[name="url"]').val(),
+           }
+           postMessage(message);
+        }
+
+        function getLastUrl() {
+           var message = {
+               "action" : "getData",
+               "key" : "lastUrl",
+               "callback" : "getLastUrlCallback",
+           }
+           postMessage(message);
+        }
+
+        function getLastUrlCallback(data) {
+            console.log('getLastUrlCallback -> ' + data);
+            var obj = JSON.parse(data);
+            $('#openWebView input[name="url"]').val(obj.lastUrl);
+        }
+
+
+        function closeWebView() {
+            var message = {
+                "action" : "closeWebView",
+                "url" : $('#closeWebView input[name="url"]').val(),
+            };
+            postMessage(message);
+        }
+
+        function closeAllWebView() {
+            var message = {
+                "action" : "closeAllWebView",
+                "url" : $('#closeWebView input[name="url"]').val(),
+            };
+            postMessage(message);
+        }
+
+        function openBrowser() {
+            var message = {
+                "action" : "openBrowser",
+                "url" : $('#openBrowser input[name="url"]').val(),
+            };
+            postMessage(message);
+        }
+
+        function requestPermission() {
+            $('#permissionResult').text('');
+            var method = $('#permission input[name="method1"]:checked').val();
+            var action;
+
+            if (method == "request") {
+                action = "requestPermission";
+            } else {
+                action = "checkPermission";
+            }
+            var message = {
+                "action" : action,
+                "type" : $('#permission input[name="type"]:checked').val(),
+                "callback" : "requestPermissionCallback"
+            };
+            postMessage(message);
+        }
+
+        function requestPermissionCallback(data) {
+            console.log('requestPermissionCallback -> ' + data);
+            var grantedYn = JSON.parse(data).grantedYn;
+            console.log(' - grantedYn: ' + grantedYn)
+            $('#permissionResult').text(grantedYn);
+        }
+
+        function connectHealthPlatform() {
+            $('#healthPlatformResult').text('');
+            var method = $('#health input[name="method2"]:checked').val();
+            var action;
+
+            if (method == "connect") {
+                action = "connectHealthPlatform";
+            } else {
+                action = "checkHealthPlatform";
+            }
+            var message = {
+                "action" : action,
+                "callback" : "connectHealthPlatformCallback"
+            };
+            postMessage(message);
+        }
+
+        function connectHealthPlatformCallback(data) {
+            console.log('connectHealthPlatformCallback -> ' + data);
+            var connectedYn = JSON.parse(data).connectedYn;
+            console.log(' - connectedYn: ' + connectedYn)
+
+            $('#healthPlatformResult').text(connectedYn);
+        }
+
+        function readHealthData() {
+            var message = {
+                "action" : "readHealthData",
+                "startTime" : $('#health input[name="startTime"]').val(),
+                "endTime" : $('#health input[name="endTime"]').val(),
+                "callback" : "readHealthDataCallback"
+            };
+            postMessage(message);
+        }
+
+        function readExerciseData() {
+            var message = {
+                "action" : "readExerciseData",
+                "id" : $('#health input[name="id"]').val(),
+                "callback" : "readExerciseDataCallback"
+            };
+            postMessage(message);
+        }
+
+        function readExerciseDataCallback(data) {
+            console.log('readExerciseDataCallback -> ' + data);
+        }
+
+        function readHealthDataCallback(data) {
+            console.log('readHealthDataCallback -> ' + data);
+            try {
+                var datas = JSON.parse(data).datas;
+                datas.forEach(function(data) {
+                    console.log("- " + JSON.stringify(data));
+                });
+            } catch(e) {
+                console.log(e.stack);
+            }
+
+        //    var obj = JSON.parse(data);
+        //    $('#healthDataResult').text(data);
+        }
+
+        function getContactList() {
+            var message = {
+                "action" : "requestPermission",
+                "type" : "CONTACT",
+                "callback" : "getContactList_chkPermission"
+            };
+            postMessage(message);
+        }
+
+        function getContactList_chkPermission(data) {
+            var grantedYn = JSON.parse(data).grantedYn;
+            if (grantedYn == "Y") {
+                var message = {
+                    "action" : "getContactList",
+                    "callback" : "getContactListResult"
+                };
+                postMessage(message);
+            } else {
+                console.log(">>>> 연락처 권한 없음");
+            }
+        }
+
+        function getContactListResult(data) {
+            try {
+                var contactList = JSON.parse(data).contactList;
+                contactList.forEach(function(contact) {
+                    console.log("- " + JSON.stringify(contact));
+                });
+            } catch(e) {
+                console.log(e.stack);
+            }
+        }
+
+        function registerPushService() {
+            $('#registerPushServiceResult').text("");
+            var message = {
+                "action" : "registerPushService",
+                "cuid" : $('#push input[name="cuid"]').val(),
+                "cname" : $('#push input[name="cname"]').val(),
+                "callback" : "registerPushServiceCallback",
+            };
+
+            postMessage(message);
+        }
+
+        function registerPushServiceCallback(result) {
+            $('#registerPushServiceResult').text(result);
+        }
+
+        function releasePushService() {
+            $('#releasePushServiceResult').text("");
+            var message = {
+                "action" : "releasePushService",
+                "callback" : "releasePushServiceCallback",
+            };
+
+            postMessage(message);
+        }
+
+        function releasePushServiceCallback(result) {
+            $('#releasePushServiceResult').text(result);
+        }
+
+        function getCurrentLocation() {
+            var message = {
+                "action" : "getCurrentLocation",
+                "callback" : "getCurrentLocationCallback"
+            };
+            postGCMessage(message);
+        }
+
+        function getCurrentLocationCallback(data) {
+            console.log('getCurrentLocationCallback -> ' + data);
+            var obj = JSON.parse(data);
+            console.log("- latitude: " + obj.latitude);
+            console.log("- longitude: " + obj.longitude);
+            $('#currentLocationResult').text(data);
+        }
+
+        function findRoute() {
+            var message = {
+                "action" : "findRoute",
+                "fromCoord" : $('#gccare input[name="from"]').val(),
+                "toCoord" : $('#gccare input[name="to"]').val()
+            };
+            postGCMessage(message);
+        }
+
+
+        function callFoodCamera() {
+            var message = {
+                "action" : "callFoodCamera",
+                "callback" : "callFoodCameraCallback"
+            };
+            postMessage(message);
+        }
+
+        function callFoodCameraCallback(data) {
+            console.log('callFoodCameraCallback -> ' + data);
+            try {
+                var obj = JSON.parse(data);
+                var base64String = obj.base64String;
+                var type = obj.type;
+                console.log(' - base64String: ' + base64String);
+                $('#callFoodCameraResult').attr('src', 'data:image/' + type + ';base64,' + base64String);
+            } catch(e) {
+                console.log(e.stack);
+            }
+        }
+
+        function checkExternalApp() {
+            $('#checkExternalAppResult').text('');
+            var appName = $('#externals input[name="app"]:checked').val();
+
+            var message = {
+                "action" : "checkExternalApp",
+                "appName" : appName,
+                "callback" : "checkExternalAppCallback"
+            };
+            postMessage(message);
+        }
+
+        function checkExternalAppCallback(data) {
+            console.log('checkExternalAppCallback -> ' + data);
+            $('#checkExternalAppResult').text(data);
+        }
+
+        function setVisibleARS() {
+            var message = {
+                "action" : "setVisibleARS",
+                "set" : $('#visibleARS input[name="set"]:checked').val(),
+                "callback" : "setVisibleARSCallback"
+            };
+            postMessage(message);
+        }
+
+        function setVisibleARSCallback(data) {
+            console.log('setVisibleARSCallback -> ' + data);
+            var obj = JSON.parse(data);
+            console.log('setVisibleARSCallback -> result :' + obj.result);
+            console.log('setVisibleARSCallback -> isSet :' + obj.data.isSet);
+
+        }
+
+        function checkVisibleARS() {
+            var message = {
+                "action" : "checkVisibleARS",
+                "callback" : "setVisibleARSCallback"
+            };
+            postMessage(message);
+        }
+
+        function getParameter(name) {
+            name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+            var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+                results = regex.exec(location.search);
+            return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+        }
+
+        function bindReadHealthTime() {
+            try {
+                var startTime = convertDateFormat(new Date(new Date().getTime() - (7 * 24 * 60 * 60 * 1000)));
+                var endTime = convertDateFormat(new Date());
+                $('#health input[name="startTime"]').val(startTime);
+                $('#health input[name="endTime"]').val(endTime);
+            } catch(e) {
+                console.log(e.stack);
+            }
+        }
+
+        function convertDateFormat(date) {
+            var year = date.getFullYear();
+            var month = ('0' + (date.getMonth() + 1)).slice(-2); // 월은 0부터 시작하므로 +1 필요
+            var day = ('0' + date.getDate()).slice(-2);
+            var hours = ('0' + date.getHours()).slice(-2);
+            var minutes = ('0' + date.getMinutes()).slice(-2);
+            return year + month + day + hours + minutes;
+        }
+
+        // 디바이스가 iOS 인 경우 true 리턴
+        function iOS() {
+            var iDevices = [
+                            'iPad Simulator',
+                            'iPhone Simulator',
+                            'iPod Simulator',
+                            'iPad',
+                            'iPhone',
+                            'iPod'
+                            ];
+
+            if (!!navigator.platform) {
+                while (iDevices.length) {
+                    if (navigator.platform === iDevices.pop()){ return true; }
+                }
+            }
+
+            return false;
+        }
+
+        //android 인지 알아보기 안드로이드 OS일 경우 true 리턴.
+        function aOS() {
+            return /(android)/i.test(navigator.userAgent);
+        }
+
+        // Native 단으로 메시지 전송
+        function postMessage(message) {
+            if(iOS()) {
+                window.webkit.messageHandlers.dhcInterface.postMessage(message);
+            }
+            else if(aOS()){
+                var msg = JSON.stringify(message);
+                window.dhcInterface.postMessage(msg);
+            }
+        }
+
+        // Native 단으로 메시지 전송
+        function postGCMessage(message) {
+            if(iOS()) {
+                window.webkit.messageHandlers.gcInterface.postMessage(message);
+            }
+            else if(aOS()){
+                var msg = JSON.stringify(message);
+                window.gcInterface.postMessage(msg);
+            }
+        }
+
+        $(document).ready(function(){
+
+            getLastUrl();
+
+            var tag = getParameter("tag");
+            $('#utlTag').text(tag);
+            bindReadHealthTime();
+
+            // 헤더 클릭하면 접고 펴는 기능...
+            $("article > header").click(function() {
+                $(this).parent().find(" > div").slideToggle("fast", function() {
+                    if ($(this).is(':visible')) {
+                        $(this).parent().attr("class","");
+                    } else {
+                        $(this).parent().attr("class","close");
+                    }
+                });
+            });
+            $("h1").click(function() {
+                if ($(this).hasClass("on") == false) {
+                    $(this).attr("class","on");
+                } else {
+                    $(this).attr("class","off");
+                }
+            });
+
+        });
+
+    </script>
+    <body>
+        <h1>
+            헬스케어 Test
+            <div id="utlTag"/>
+        </h1>
+<!--        <a href="#" onclick="linkTest(); return;">win.open</a>-->
+<!--        <a href="openurl://https://google.com">openurl</a>-->
+<!--        <a href="https://google.com">a tag</a>-->
+
+        <div id="alarmTest">
+            <h3>알림함 테스트</h3>
+            <p>
+                <label>send-type <input type="text" value="PUSH" name="send-type"/></label>
+            </p>
+            <p>
+                <label>detail-yn <input type="text" value="Y" name="detail-yn"/></label>
+            </p>
+            <p>
+                <label>target-link <input type="text" value="/imtg/mptmp/details.do" name="target-link"/></label>
+            </p>
+            <p>
+                link-type <label><input type="radio" value="in" name="link-type" checked/>in</label> <label><input type="radio" value="ext" name="link-type"/>ext</label>
+            </p>
+            <p>
+                <label>img-url <input type="text" value="" name="img-url"/></label>
+            </p>
+            <input type="button" value="receivePush" onclick="receivePush();return;"><br>
+            <br>
+        </div>
+
+        <div id="sms">
+            <h3>인증번호 테스트</h3>
+            <p>
+                <label>전화번호 <input type="text" value="" name="phoneNum"/></label>
+            </p>
+            <input type="button" value="reqAuthNum" onclick="reqAuthNum();return;"><br>
+            <br>
+            인증번호 <p id="reqAuthNumResult"></p>
+        </div>
+
+        <div id="openSettings">
+            <h3>설정화면 이동</h3>
+            <input type="button" value="openSettings" onclick="openSettings();return;"><br>
+        </div>
+
+
+        <div id="webview">
+            <h3>Clear History</h3>
+            <input type="button" value="clearHistory" onclick="clearHistory();return;"><br>
+        </div>
+
+
+        <div id="webviewList">
+            <h3>웹뷰 목록 조회</h3>
+            <input type="button" value="getDHCWebViews" onclick="getDHCWebViews();return;"><br>
+        </div>
+
+        <div id="visibleARS">
+            <h3>보이는 ARS</h3>
+            <p>
+                <label><input type="radio" value="Y" name="set" checked/>Y</label>
+                <label><input type="radio" value="N" name="set"/>N</label>
+            </p>
+
+            <input type="button" value="setVisibleARS" onclick="setVisibleARS();return;"><br>
+            <p id="setVisibleARSResult"></p>
+            <br>
+            <input type="button" value="checkVisibleARS" onclick="checkVisibleARS();return;"><br>
+            <p id="checkVisibleARSResult"></p>
+        </div>
+
+        <div id="contact">
+            <h3>연락처 목록 조회</h3>
+            <input type="button" value="getContactList" onclick="getContactList();return;"><br>
+            <p id="getContactListResult"></p>
+        </div>
+
+        <div id="foodCamera">
+            <h3>food camera</h3>
+            <p>
+                <img id="callFoodCameraResult" src="" alt="" />
+            </p>
+            <input type="button" value="callFoodCamera" onclick="callFoodCamera();return;"><br>
+        </div>
+        <br>
+        <div id="openWebView">
+            <h3>openWebView</h3>
+            <p>
+                <label>url <input type="text" value="" name="url"/></label>
+            </p>
+            <input type="button" value="openWebView" onclick="openWebView();return;"><br>
+        </div>
+        <br>
+        <br>
+        <div id="closeWebView">
+            <h3>closeWebView</h3>
+            <p>
+                <label>url <input type="text" value="naver.com" name="url"/></label>
+            </p>
+            <input type="button" value="closeWebView" onclick="closeWebView();return;"><br>
+            <br>
+            <br>
+            <input type="button" value="closeAllWebView" onclick="closeAllWebView();return;"><br>
+        </div>
+        <br>
+        <div id="openBrowser">
+            <h3>openBrowser</h3>
+            <p>
+                <label>url <input type="text" value="https://naver.com" name="url"/></label>
+            </p>
+            <input type="button" value="openBrowser" onclick="openBrowser();return;"><br>
+        </div>
+        <br>
+
+        <div id="share">
+            <h3>공유하기</h3>
+            <p>
+                <input type="text" value="https://life-q.miraeasset.com/online/directPage.do?cp=MO-DR-040100-000000&bbsNo=81569&tab=1" name="link"/>
+            </p>
+            <input type="button" value="shareLink" onclick="shareLink();return;"><br>
+            <br>
+        </div>
+
+        <div id="picker">
+            <h3>time picker</h3>
+            <input type="button" value="showTimePicker" onclick="showTimePicker();return;"><br>
+            선택시간 : <p id="selectTimeResult"></p>
+            <br>
+        </div>
+
+        <div id="setUserInfo">
+            <h3>사용자 정보 저장</h3>
+            <p>
+                <label>id <input type="text" value="id" name="id"/></label>
+            </p>
+            <p>
+                <label>pw <input type="text" value="pw" name="pw"/></label>
+            </p>
+            <input type="button" value="setUserInfo" onclick="setUserInfo();return;"><br>
+        </div>
+        <br>
+
+        <div id="getUserInfo">
+            <h3>사용자 정보 조회</h3>
+            <p class = "json" id = "getUserInfoResult"></p>
+            <input type="button" value="getUserInfo" onclick="getUserInfo();return;"><br>
+        </div>
+        <br>
+
+        <div id="getDeviceInfo">
+            <h3>디바이스 정보 조회</h3>
+            <p class = "json" id = "getDeviceInfoResult"></p>
+            <input type="button" value="getDeviceInfo" onclick="getDeviceInfo();return;"><br>
+        </div>
+        <br>
+
+        <div id="setData">
+            <h3>setData</h3>
+            <p>
+                <label>key <input type="text" value="name" name="key"/></label>
+            </p>
+            <p>
+                <label>value <input type="text" value="value" name="value" /></label>
+            </p>
+            <input type="button" value="setData" onclick="setData();return;"><br>
+        </div>
+        <br>
+
+        <div id="getData">
+            <h3>getData</h3>
+            <p>
+                <label>key <input type="text" value="" name="key"/></label>
+            </p>
+            <p class = "json" id = "getDataResult"></p>
+            <input type="button" value="getData" onclick="getData();return;"><br>
+        </div>
+        <br>
+        <div id="file">
+            <h3>input file</h3>
+            <br>
+            이미지 <input type="file" accept="image/*" ><br>
+            <br>
+            멀티플 <input type="file" accept="image/*" multiple><br>
+            <br>
+            카메라 <input type="file" accept="image/*" capture="user"><br>
+        </div>
+        <div id="permission">
+            <h3>권한</h3>
+            <p>
+                <label><input type="radio" value="PHONE" name="type" checked/>전화</label>
+                <label><input type="radio" value="CAMERA" name="type"/>카메라</label>
+                <label><input type="radio" value="LOCATION" name="type"/>위치</label>
+                <label><input type="radio" value="NOTIFICATION" name="type"/>알림</label>
+                <label><input type="radio" value="STORAGE" name="type"/>저장소</label>
+                <label><input type="radio" value="CONTACT" name="type"/>연락처</label>
+            </p>
+            <p>
+                <label><input type="radio" value="request" name="method1" checked/>권한 요청</label>
+                <label><input type="radio" value="check" name="method1"/>권한 확인</label>
+            </p>
+            허용여부 : <p id="permissionResult"></p>
+            <input type="button" value="permission" onclick="requestPermission();return;"><br>
+        </div>
+
+        <div id="health">
+            <h3>헬스플랫폼 연동 (AOS: 헬스커넥트, iOS: 건강앱)</h3>
+            <p>
+                <label><input type="radio" value="connect" name="method2" checked/>연동 요청</label>
+                <label><input type="radio" value="check" name="method2"/>연동 확인</label>
+            </p>
+            연동여부 : <p id="healthPlatformResult"></p>
+            <input type="button" value="HealthPlatform" onclick="connectHealthPlatform();return;"><br>
+            <br>
+            <h3>건강 데이터 조회</h3>
+            <p>
+                <label>startTime <input type="text" value="" name="startTime"/></label>
+            </p>
+            <p>
+                <label>endTime <input type="text" value="" name="endTime" /></label>
+            </p>
+            <input type="button" value="readHealthData" onclick="readHealthData();return;"><br>
+            건강 데이터: <p id="healthDataResult"></p>
+            <br>
+            <br>
+            <p>
+                <label>id <input type="text" value="ed34c1ff-1dc2-40d6-ae10-52889ec12dc1" name="id"/></label>
+            </p>
+            <input type="button" value="readExerciseData" onclick="readExerciseData();return;"><br>
+        </div>
+
+        <div id="gccare">
+            <h3>현재 좌표 조회</h3>
+            <p id="currentLocationResult"></p>
+            <input type="button" value="getCurrentLocation" onclick="getCurrentLocation();return;"><br>
+            <br>
+            <h3>길찾기</h3>
+            <p>
+                <label>출발 좌표: <input type="text" value="37.53723,127.00551" name="from"/></label>
+            </p>
+            <p>
+                <label>도착 좌표: <input type="text" value="37.49795,127.027637" name="to"/></label>
+            </p>
+            <input type="button" value="findRoute" onclick="findRoute();return;"><br>
+            <br>
+        </div>
+
+        <div id="externals">
+            <h3>외부앱 설치 여부 확인<h3>
+            <p>
+                <label><input type="radio" value="TOSS" name="app" checked/>토스</label>
+                <label><input type="radio" value="KAKAOTALK" name="app"/>카카오톡</label>
+                <label><input type="radio" value="PAYCO" name="app"/>페이코</label>
+                <label><input type="radio" value="SWALLET" name="app"/>삼성월렛</label>
+                <label><input type="radio" value="NAVER" name="app"/>네이버</label>
+                <label><input type="radio" value="PASS_SKT" name="app"/>SKT PASS</label>
+                <label><input type="radio" value="PASS_LGU" name="app"/>LGU PASS</label>
+                <label><input type="radio" value="PASS_KT" name="app"/>KT PASS</label>
+            </p>
+            설치여부 : <p id="checkExternalAppResult"></p>
+            <input type="button" value="checkExternalApp" onclick="checkExternalApp();return;"><br>
+        </div>
+
+        <div id="push">
+            <h3>푸시 서비스 등록</h3>
+            <p>
+                <label>cuid <input type="text" value="H000005343" name="cuid"/></label>
+            </p>
+            <p>
+                <label>name <input type="text" value="테스트유저" name="cname"/></label>
+            </p>
+            <input type="button" value="registerPushService" onclick="registerPushService();return;"><br>
+            요청결과 : <p id="registerPushServiceResult"></p>
+            <br>
+            <h3>푸시 서비스 해제</h3>
+            <input type="button" value="releasePushService" onclick="releasePushService();return;"><br>
+            요청결과 : <p id="releasePushServiceResult"></p>
+        </div>
+
+        <h3>A TAGs</h3>
+        <br>
+        <a href="sms:010-1234-5678?body=문자보내기1">문자보내기 1</a><br>
+        <br>
+        <a href="sms:010-1234-5678;body=문자보내기2">문자보내기 2</a><br>
+        <br>
+        <a href="sms:010-1234-5678&body=문자보내기3">문자보내기 3</a><br>
+        <br>
+        <a href="mailto:test123@example.com?subject=테스트입니다.?body=내용">메일보내기</a><br>
+        <br>
+        <a href="tel:010-1234-1234">전화 걸기</a><br>
+        <br>
+    </body>
+</html>
